@@ -11,7 +11,7 @@ variable "ami_id" {
 variable "volume_size" {
   description = "Size of the EBS volume in GB"
   type        = number
-  default     = 10
+  default     = 20
 }
 variable "volume_type" {
   description = "Type of the EBS volume"

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: book-statefulset
+  Namespace: bookstore
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  serviceName: backend-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: mongo:latest
+        ports:
+        - containerPort: 12701
+          name: web
+        volumeMounts:
+        - name: mongodb
+          mountPath: var/lib/mongodb
+  volumeClaimTemplates:
+  - metadata:
+      name: mypvc
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

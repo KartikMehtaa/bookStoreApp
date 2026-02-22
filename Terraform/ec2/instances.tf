@@ -62,6 +62,17 @@ resource "aws_vpc_security_group_ingress_rule" "kubernetes" {
   to_port     = 32767
   description = "Allow Kubernetes traffic from internal network"
 }
+resource "aws_security_group" "ecommerce_sg" {
+  name = "ecommerce-sg"
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_instance" "ecommerce_instance" {
   for_each               = toset(["ecommerce-instance-1", "ecommerce-instance-2", "ecommerce-instance-3"])
   ami                    = var.ami_id
