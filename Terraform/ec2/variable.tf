@@ -1,7 +1,11 @@
-variable "instance_type" {
+variable "instance_types" {
   description = "Type of EC2 instance"
-  type        = string
-  default     = "t2.micro"
+  type        = map(string)
+  default = {
+    ecommercekubenetes = "t2.medium",
+    ecommerceworker1   = "t2.micro",
+    ecommerceworker2   = "t2.micro"
+  }
 }
 variable "ami_id" {
   description = "AMI ID for the EC2 instance"

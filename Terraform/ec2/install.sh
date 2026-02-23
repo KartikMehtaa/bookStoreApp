@@ -1,3 +1,5 @@
 #!/bin/bash
-# Update package lists
-sudo apt-get update -y 
+apt update -y
+apt install docker.io -y
+apt install git -y
+apt install curl -y

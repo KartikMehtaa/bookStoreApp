@@ -2,68 +2,66 @@ resource "aws_key_pair" "ecommerce_key" {
   key_name   = "ecommerce_key"
   public_key = file("${path.module}/ecommerce-key.pub")
 }
+
 resource "aws_default_vpc" "default_vpc" {
   tags = {
     Name = "default_vpc"
   }
 }
+
 resource "aws_security_group" "ecommerce_sg" {
+
   name        = "ecommerce_sg"
   description = "Security group for ecommerce instances"
   vpc_id      = aws_default_vpc.default_vpc.id
-}
 
-resource "aws_vpc_security_group_ingress_rule" "http" {
-  security_group_id = aws_security_group.ecommerce_sg.id
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow SSH"
+  }
 
-  cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 80
-  ip_protocol = "tcp"
-  to_port     = 80
-  description = "Allow HTTP traffic from internal network"
-}
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTP"
+  }
 
-resource "aws_vpc_security_group_ingress_rule" "ssh" {
-  security_group_id = aws_security_group.ecommerce_sg.id
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTPS"
+  }
 
-  cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 22
-  ip_protocol = "tcp"
-  to_port     = 22
-  description = "Allow SSH traffic from internal network"
-}
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow Jenkins"
+  }
 
-resource "aws_vpc_security_group_ingress_rule" "https" {
-  security_group_id = aws_security_group.ecommerce_sg.id
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow Kubernetes API"
+  }
 
-  cidr_ipv4   = "0.0.0.0/0"
-  from_port   = 443
-  ip_protocol = "tcp"
-  to_port     = 443
-  description = "Allow HTTPs traffic from internal network"
-}
-
-resource "aws_vpc_security_group_ingress_rule" "jenkins" {
-  security_group_id = aws_security_group.ecommerce_sg.id
-
-  cidr_ipv4   = "10.0.0.0/8"
-  from_port   = 8080
-  ip_protocol = "tcp"
-  to_port     = 8080
-  description = "Allow Jenkins traffic from internal network"
-}
-
-resource "aws_vpc_security_group_ingress_rule" "kubernetes" {
-  security_group_id = aws_security_group.ecommerce_sg.id
-
-  cidr_ipv4   = "10.0.0.0/8"
-  from_port   = 30000
-  ip_protocol = "tcp"
-  to_port     = 32767
-  description = "Allow Kubernetes traffic from internal network"
-}
-resource "aws_security_group" "ecommerce_sg" {
-  name = "ecommerce-sg"
+  ingress {
+    from_port   = 30000
+    to_port     = 32767
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow Kubernetes NodePort"
+  }
 
   egress {
     from_port   = 0
@@ -71,23 +69,27 @@ resource "aws_security_group" "ecommerce_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
 }
 
 resource "aws_instance" "ecommerce_instance" {
-  for_each               = toset(["ecommerce-instance-1", "ecommerce-instance-2", "ecommerce-instance-3"])
+
+  for_each = var.instance_types
+
   ami                    = var.ami_id
-  instance_type          = var.instance_type
+  instance_type          = each.value
   key_name               = aws_key_pair.ecommerce_key.key_name
   vpc_security_group_ids = [aws_security_group.ecommerce_sg.id]
   user_data              = file("${path.module}/install.sh")
-
 
   root_block_device {
     volume_size           = var.volume_size
     volume_type           = var.volume_type
     delete_on_termination = true
   }
+
   tags = {
     Name = each.key
   }
+
 }
