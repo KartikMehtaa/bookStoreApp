@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: book-statefulset
-  Namespace: bookstore
+  namespace: bookstore
 spec:
   selector:
     matchLabels:
