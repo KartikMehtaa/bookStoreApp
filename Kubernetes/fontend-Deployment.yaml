@@ -4,7 +4,7 @@ metadata:
   name: frontend-app
   namespace: bookstore
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend-app
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend-container
-        image: kartikmehta/book-Frontend:latest
+        image: kartikmehta/book-frontend:latest
         resources:
           limits:
             memory: "128Mi"

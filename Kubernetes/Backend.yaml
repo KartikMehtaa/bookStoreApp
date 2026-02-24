@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend-container
-        image: kartikmehta/book-backend:latest
+        image: kartikmehta/bookapp-backend:latest
         resources:
           limits:
             memory: "128Mi"
