@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp
-  Namespace: bookstore
+  namespace: bookstore
 spec:
   selector:
     matchLabels:
