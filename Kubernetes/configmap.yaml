@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  PORT: "4001"
+  MongoDBURI: "mongodb://mongodb-service:27017/bookStore"

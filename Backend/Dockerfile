@@ -22,7 +22,8 @@ WORKDIR /app
 
 # Copy only required files from builder
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/index.js ./
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/index.js ./index.js
 COPY --from=builder /app/controller ./controller
 COPY --from=builder /app/model ./model
 COPY --from=builder /app/route ./route
