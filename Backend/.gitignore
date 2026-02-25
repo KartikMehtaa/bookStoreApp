@@ -22,9 +22,6 @@ build/
 # Coverage
 coverage/
 
-# Docker
-Dockerfile
-.dockerignore
 
 # IDE / Editor
 .vscode/

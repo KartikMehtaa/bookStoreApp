@@ -27,3 +27,6 @@ terraform.rc
 
 # Logs
 *.log
+# terraform keys
+ecommerce-key
+ecommerce-key.pub
