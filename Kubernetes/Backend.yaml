@@ -4,20 +4,29 @@ metadata:
   name: myapp
   namespace: bookstore
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: backend-myapp
+
   template:
     metadata:
       labels:
         app: backend-myapp
+
     spec:
       containers:
-      - name: backend-container
-        image: kartikmehta/bookapp-backend:latest
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        ports:
-        - containerPort: 4000
+        - name: backend-container
+          image: kartikmehta/bookapp-backend:latest
+
+          ports:
+            - containerPort: 4000
+
+          envFrom:
+            - configMapRef:
+                name: configmap
+
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
