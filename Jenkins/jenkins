@@ -1,0 +1,115 @@
+pipeline {
+    agent any
+
+    environment {
+        BACKEND_IMAGE = "bookapp-backend"
+        FRONTEND_IMAGE = "book-frontend"
+        TAG = "latest"
+        KUBECONFIG = '/home/ubuntu/.kube/config'
+    }
+
+    stages {
+
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/KartikMehtaa/bookStoreApp.git'
+            }
+        }
+
+        
+
+        stage('Build Docker Images') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    sh '''
+                      docker rmi -f $DOCKER_USER/$BACKEND_IMAGE:$TAG || true
+                      docker rmi -f $DOCKER_USER/$FRONTEND_IMAGE:$TAG || true
+
+                      docker build -t $DOCKER_USER/$BACKEND_IMAGE:$TAG ./Backend
+                      docker build -t $DOCKER_USER/$FRONTEND_IMAGE:$TAG ./Frontend
+                    '''
+                }
+            }
+        }
+
+        stage('DockerHub Login & Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+
+                    docker push $DOCKER_USER/$BACKEND_IMAGE:$TAG
+                    docker push $DOCKER_USER/$FRONTEND_IMAGE:$TAG
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Namespace') {
+            steps {
+                sh 'kubectl apply -f Kubernetes/namespace.yaml'
+            }
+        }
+
+        stage('Deploy ConfigMap') {
+            steps {
+                sh 'kubectl apply -f Kubernetes/configmap.yaml'
+            }
+        }
+
+        stage('Deploy Database') {
+            steps {
+                sh 'kubectl apply -f Kubernetes/secretes.yaml'
+                sh 'kubectl apply -f Kubernetes/book-persistent.yaml'
+                sh 'kubectl apply -f Kubernetes/book-statefullset.yaml'
+            }
+        }
+
+        stage('Deploy Backend') {
+            steps {
+                sh 'kubectl apply -f Kubernetes/Backend.yaml'
+                sh 'kubectl apply -f Kubernetes/backend-service.yaml'
+            }
+        }
+
+        stage('Deploy Frontend') {
+            steps {
+                sh 'kubectl apply -f Kubernetes/fontend-Deployment.yaml'
+                sh 'kubectl apply -f Kubernetes/frontend-service.yaml'
+            }
+        }
+
+        stage('Restart Deployments') {
+            steps {
+                sh '''
+                kubectl rollout restart deployment backend -n bookstore || true
+                kubectl rollout restart deployment frontend -n bookstore || true
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh 'kubectl get pods -A'
+                sh 'kubectl get svc -A'
+            }
+        }
+
+    }
+
+    post {
+        always {
+            sh 'docker logout'
+        }
+    }
+}
