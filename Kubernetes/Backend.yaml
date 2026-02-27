@@ -24,7 +24,7 @@ spec:
 
           envFrom:
             - configMapRef:
-                name: configmap
+                name: backend-config
 
           resources:
             limits:
